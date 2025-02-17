@@ -10,7 +10,7 @@ export default defineConfig({
       name: 'todo',
       filename: 'assets/remoteEntry.js',
       remotes: {
-        auth: 'auth@https://auth-layout.vercel.app/auth/_next/static/chunks/remoteEntry.js',
+        auth: 'auth@https://auth-layout.vercel.app/_next/static/chunks/remoteEntry.js',
       },
       exposes: {
         "./SideBarData": "./src/exposed/SidebarParams.ts",
@@ -31,15 +31,15 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: '/',
-  server: {
-		port: 3000,
-		proxy: {
-			'/auth': {
-				target: 'https://auth-layout.vercel.app/auth',
-				changeOrigin: true,
-				rewrite: (path) => path.replace(/^\/auth/, ''),
-			},
-		}
-	},
+  // base: '/',
+  // server: {
+	// 	port: 3000,
+	// 	proxy: {
+	// 		'/auth': {
+	// 			target: 'https://auth-layout.vercel.app',
+	// 			changeOrigin: true,
+	// 			rewrite: (path) => path.replace(/^\/auth/, ''),
+	// 		},
+	// 	}
+	// },
 })
