@@ -27,7 +27,7 @@ let data: { navMain: { title: string; url: string; icon: undefined; isActive: bo
 
 const AppWithWrapper = ({data, children}:{data:any, children:React.ReactNode}) => {
   return (
-    <Wrapper data={data}>
+    <Wrapper data={data} publishableKey={import.meta.env.VITE_REACT_APP_CLERK_PUBLISHABLE_KEY}>
       <ApolloProvider client={client}>{children}</ApolloProvider>
     </Wrapper>
   );
@@ -80,7 +80,5 @@ const App = ({
   );
 };
 
-
-export const exposedData = data;
 
 export default App;
