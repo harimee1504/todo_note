@@ -12,7 +12,7 @@ const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
 
 const link = createHttpLink({
-  uri: "http://localhost:5000/graphql",
+  uri: "https://todo-note-server.vercel.app/graphql",
   credentials: "include",
 });
 
