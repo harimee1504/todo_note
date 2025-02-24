@@ -2,7 +2,8 @@
     "version": 2,
     "routes": [
         {
-            "/(.*)": "src/main"
+            "src": "/(.*)",
+            "dest": "src/main"
         }
     ]
-}
+}S
