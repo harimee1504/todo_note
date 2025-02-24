@@ -81,4 +81,6 @@ const App = ({
 };
 
 
+export const exposedData = data;
+
 export default App;
