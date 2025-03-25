@@ -13,7 +13,11 @@ const cache = new InMemoryCache();
 
 const link = createHttpLink({
   uri: "https://todo-note-server.onrender.com",
-  credentials: "include",
+  credentials: 'include',
+  fetchOptions: {
+    mode: 'cors',
+    redirect: 'follow'
+  }
 });
 
 export const client = new ApolloClient({
