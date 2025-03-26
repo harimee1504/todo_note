@@ -42,11 +42,15 @@ const authLink = setContext(async (_, { headers }) => {
     // Get the session token from Clerk
     const token = await window.Clerk?.session?.getToken();
 
+    // Get cookies from document
+    const cookies = document.cookie;
+
     // Return the headers to the context so httpLink can read them
     return {
       headers: {
         ...headers,
         authorization: token ? `Bearer ${token}` : "",
+        cookie: cookies,
       },
     };
   } catch (error) {
@@ -55,6 +59,7 @@ const authLink = setContext(async (_, { headers }) => {
       headers: {
         ...headers,
         authorization: "",
+        cookie: document.cookie,
       },
     };
   }
