@@ -7,34 +7,55 @@ import {
   createHttpLink,
 } from "@apollo/client";
 import TodoComponment from "./pages/todo";
-import { setContext } from '@apollo/client/link/context';
-import { useAuth } from '@clerk/clerk-react';
+import { setContext } from "@apollo/client/link/context";
+import { useAuth } from "@clerk/clerk-react";
+
+// Declare Clerk types
+declare global {
+  interface Window {
+    Clerk?: {
+      session?: {
+        getToken: () => Promise<string>;
+      };
+    };
+  }
+}
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
 
 const httpLink = createHttpLink({
   uri: "https://todo-note-server.onrender.com/graphql",
-  credentials: 'include',
+  credentials: "include",
   fetchOptions: {
-    mode: 'cors',
+    mode: "cors",
     headers: {
-      'Content-Type': 'application/json'
-    }
-  }
+      "Content-Type": "application/json",
+    },
+  },
 });
 
 // Create an auth link that adds the token to every request
 const authLink = setContext(async (_, { headers }) => {
-  // Get the authentication token from Clerk
-  const token = localStorage.getItem('__clerk_db_jwt');
-  
-  // Return the headers to the context so httpLink can read them
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    }
+  try {
+    // Get the session token from Clerk
+    const token = await window.Clerk?.session?.getToken();
+
+    // Return the headers to the context so httpLink can read them
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  } catch (error) {
+    console.error("Error getting auth token:", error);
+    return {
+      headers: {
+        ...headers,
+        authorization: "",
+      },
+    };
   }
 });
 
@@ -43,13 +64,28 @@ export const client = new ApolloClient({
   link: authLink.concat(httpLink),
 });
 
+let data: {
+  navMain: {
+    title: string;
+    url: string;
+    icon: undefined;
+    isActive: boolean;
+    items: { title: string; url: () => void }[];
+  }[];
+};
 
-let data: { navMain: { title: string; url: string; icon: undefined; isActive: boolean; items: { title: string; url: () => void; }[]; }[]; };
-
-
-const AppWithWrapper = ({data, children}:{data:any, children:React.ReactNode}) => {
+const AppWithWrapper = ({
+  data,
+  children,
+}: {
+  data: any;
+  children: React.ReactNode;
+}) => {
   return (
-    <Wrapper data={data} publishableKey={import.meta.env.VITE_REACT_APP_CLERK_PUBLISHABLE_KEY}>
+    <Wrapper
+      data={data}
+      publishableKey={import.meta.env.VITE_REACT_APP_CLERK_PUBLISHABLE_KEY}
+    >
       <ApolloProvider client={client}>{children}</ApolloProvider>
     </Wrapper>
   );
@@ -101,7 +137,6 @@ const App = ({
     <></>
   );
 };
-
 
 export const exposedData = data;
 
