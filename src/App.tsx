@@ -31,6 +31,7 @@ const httpLink = createHttpLink({
     mode: "cors",
     headers: {
       "Content-Type": "application/json",
+      "Accept": "application/json"
     },
   },
 });
@@ -62,6 +63,12 @@ const authLink = setContext(async (_, { headers }) => {
 export const client = new ApolloClient({
   cache: cache,
   link: authLink.concat(httpLink),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'network-only',
+      errorPolicy: 'ignore',
+    },
+  },
 });
 
 let data: {
