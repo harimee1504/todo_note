@@ -7,11 +7,13 @@ import {
   createHttpLink,
 } from "@apollo/client";
 import TodoComponment from "./pages/todo";
+import { setContext } from '@apollo/client/link/context';
+import { useAuth } from '@clerk/clerk-react';
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
 
-const link = createHttpLink({
+const httpLink = createHttpLink({
   uri: "https://todo-note-server.onrender.com/graphql",
   credentials: 'include',
   fetchOptions: {
@@ -22,9 +24,23 @@ const link = createHttpLink({
   }
 });
 
+// Create an auth link that adds the token to every request
+const authLink = setContext(async (_, { headers }) => {
+  // Get the authentication token from Clerk
+  const token = localStorage.getItem('__clerk_db_jwt');
+  
+  // Return the headers to the context so httpLink can read them
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : "",
+    }
+  }
+});
+
 export const client = new ApolloClient({
   cache: cache,
-  link,
+  link: authLink.concat(httpLink),
 });
 
 
