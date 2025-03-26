@@ -69,6 +69,7 @@ export const client = new ApolloClient({
       errorPolicy: 'ignore',
     },
   },
+  connectToDevTools: true,
 });
 
 let data: {
