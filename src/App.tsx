@@ -15,8 +15,7 @@ const link = createHttpLink({
   uri: "https://todo-note-server.onrender.com",
   credentials: 'include',
   fetchOptions: {
-    mode: 'cors',
-    redirect: 'follow'
+    mode: 'cors'
   }
 });
 
