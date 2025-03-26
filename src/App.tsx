@@ -12,10 +12,13 @@ const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
 
 const link = createHttpLink({
-  uri: "https://todo-note-server.onrender.com",
+  uri: "https://todo-note-server.onrender.com/graphql",
   credentials: 'include',
   fetchOptions: {
-    mode: 'cors'
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json'
+    }
   }
 });
 
