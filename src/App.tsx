@@ -10,72 +10,9 @@ import TodoComponment from "./pages/todo";
 import { setContext } from "@apollo/client/link/context";
 import { useAuth } from "@clerk/clerk-react";
 
-// Declare Clerk types
-declare global {
-  interface Window {
-    Clerk?: {
-      session?: {
-        getToken: () => Promise<string>;
-      };
-    };
-  }
-}
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
-
-const httpLink = createHttpLink({
-  uri: "https://todo-note-server.onrender.com/graphql",
-  credentials: "include",
-  fetchOptions: {
-    mode: "cors",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json"
-    },
-  },
-});
-
-// Create an auth link that adds the token to every request
-const authLink = setContext(async (_, { headers }) => {
-  try {
-    // Get the session token from Clerk
-    const token = await window.Clerk?.session?.getToken();
-
-    // Get cookies from document
-    const cookies = document.cookie;
-
-    // Return the headers to the context so httpLink can read them
-    return {
-      headers: {
-        ...headers,
-        authorization: token ? `Bearer ${token}` : "",
-        cookie: cookies,
-      },
-    };
-  } catch (error) {
-    console.error("Error getting auth token:", error);
-    return {
-      headers: {
-        ...headers,
-        authorization: "",
-        cookie: document.cookie,
-      },
-    };
-  }
-});
-
-export const client = new ApolloClient({
-  cache: cache,
-  link: authLink.concat(httpLink),
-  defaultOptions: {
-    watchQuery: {
-      fetchPolicy: 'network-only',
-      errorPolicy: 'ignore',
-    },
-  },
-  connectToDevTools: true,
-});
 
 let data: {
   navMain: {
@@ -94,6 +31,55 @@ const AppWithWrapper = ({
   data: any;
   children: React.ReactNode;
 }) => {
+  const { getToken } = useAuth();
+  const httpLink = createHttpLink({
+    uri: "https://todo-note-server.onrender.com/graphql",
+    credentials: "include",
+    fetchOptions: {
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+    },
+  });
+  
+  // Create an auth link that adds the token to every request
+  const authLink = setContext(async (_, { headers }) => {
+    try {
+      // Get the session token from Clerk
+      const token = await getToken({ template: "convex" });
+      console.log(token);
+      // Return the headers to the context so httpLink can read them
+      return {
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${token}`
+        },
+      };
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      return {
+        headers: {
+          ...headers,
+          Authorization: ""
+        },
+      };
+    }
+  });
+  
+  const client = new ApolloClient({
+    cache: cache,
+    link: authLink.concat(httpLink),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: 'network-only',
+        errorPolicy: 'ignore',
+      },
+    },
+    connectToDevTools: true,
+  });
+
   return (
     <Wrapper
       data={data}
@@ -105,6 +91,54 @@ const AppWithWrapper = ({
 };
 
 export const AppWithOutWrapper = () => {
+  const { getToken } = useAuth();
+  const httpLink = createHttpLink({
+    uri: "https://todo-note-server.onrender.com/graphql",
+    credentials: "include",
+    fetchOptions: {
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+    },
+  });
+  
+  // Create an auth link that adds the token to every request
+  const authLink = setContext(async (_, { headers }) => {
+    try {
+      // Get the session token from Clerk
+      const token = await getToken({ template: "convex" });
+      console.log(token);
+      // Return the headers to the context so httpLink can read them
+      return {
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${token}`
+        },
+      };
+    } catch (error) {
+      console.error("Error getting auth token:", error);
+      return {
+        headers: {
+          ...headers,
+          Authorization: ""
+        },
+      };
+    }
+  });
+  
+  const client = new ApolloClient({
+    cache: cache,
+    link: authLink.concat(httpLink),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: 'network-only',
+        errorPolicy: 'ignore',
+      },
+    },
+    connectToDevTools: true,
+  });
   return (
     <ApolloProvider client={client}>
       <TodoComponment />
