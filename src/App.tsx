@@ -95,14 +95,8 @@ const AppWithWrapper = ({
   return (
     <Wrapper
       data={data}
-      publishableKey={import.meta.env.VITE_REACT_APP_CLERK_PUBLISHABLE_KEY}
     >
-      <SignedIn>
         <TodoNote />
-      </SignedIn>
-      <SignedOut>
-        <RedirectToSignIn />
-      </SignedOut>
     </Wrapper>
   );
 };
