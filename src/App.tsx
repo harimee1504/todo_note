@@ -9,7 +9,7 @@ import {
 } from "@apollo/client";
 import TodoComponment from "./pages/todo";
 import { setContext } from "@apollo/client/link/context";
-import { useAuth } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, RedirectToSignIn, useAuth } from "@clerk/clerk-react";
 
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
@@ -97,7 +97,12 @@ const AppWithWrapper = ({
       data={data}
       publishableKey={import.meta.env.VITE_REACT_APP_CLERK_PUBLISHABLE_KEY}
     >
-      <TodoNote />
+      <SignedIn>
+        <TodoNote />
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
     </Wrapper>
   );
 };
