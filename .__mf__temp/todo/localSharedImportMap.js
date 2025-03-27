@@ -17,6 +17,11 @@
           let pkg = await import("__mf__virtual/todo__prebuild__react_mf_2_router_mf_2_dom__prebuild__.js")
           return pkg
         }
+      ,
+        "@clerk/clerk-react": async () => {
+          let pkg = await import("__mf__virtual/todo__prebuild___mf_0_clerk_mf_1_clerk_mf_2_react__prebuild__.js")
+          return pkg
+        }
       
     }
       const usedShared = {
@@ -96,6 +101,32 @@
             shareConfig: {
               singleton: false,
               requiredVersion: "^6.28.2"
+            }
+          }
+        ,
+          "@clerk/clerk-react": {
+            name: "@clerk/clerk-react",
+            version: "5.22.6",
+            scope: ["default"],
+            loaded: false,
+            from: "todo",
+            async get () {
+              usedShared["@clerk/clerk-react"].loaded = true
+              const {"@clerk/clerk-react": pkgDynamicImport} = importMap 
+              const res = await pkgDynamicImport()
+              const exportModule = {...res}
+              // All npm packages pre-built by vite will be converted to esm
+              Object.defineProperty(exportModule, "__esModule", {
+                value: true,
+                enumerable: false
+              })
+              return function () {
+                return exportModule
+              }
+            },
+            shareConfig: {
+              singleton: false,
+              requiredVersion: "^5.22.6"
             }
           }
         

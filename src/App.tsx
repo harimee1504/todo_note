@@ -9,8 +9,7 @@ import {
 } from "@apollo/client";
 import TodoComponment from "./pages/todo";
 import { setContext } from "@apollo/client/link/context";
-import { SignedIn, SignedOut, RedirectToSignIn, useAuth } from "@clerk/clerk-react";
-
+import { useAuth } from "@clerk/clerk-react";
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
@@ -41,13 +40,10 @@ const TodoNote = () => {
     },
   });
   
-  // Create an auth link that adds the token to every request
   const authLink = setContext(async (_, { headers }) => {
     try {
-      // Get the session token from Clerk
       const token = await getToken();
       console.log(token);
-      // Return the headers to the context so httpLink can read them
       return {
         headers: {
           ...headers,
@@ -91,12 +87,9 @@ const AppWithWrapper = ({
   data: any;
   children: React.ReactNode;
 }) => {
-
   return (
-    <Wrapper
-      data={data}
-    >
-        <TodoNote />
+    <Wrapper data={data}>
+      <TodoNote />
     </Wrapper>
   );
 };
