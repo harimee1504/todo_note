@@ -27,13 +27,7 @@ let data: {
   }[];
 };
 
-const AppWithWrapper = ({
-  data,
-  children,
-}: {
-  data: any;
-  children: React.ReactNode;
-}) => {
+const TodoNote = () => {
   const { getToken } = useAuth();
   const httpLink = createHttpLink({
     uri: "https://todo-note-server.onrender.com/graphql",
@@ -51,7 +45,7 @@ const AppWithWrapper = ({
   const authLink = setContext(async (_, { headers }) => {
     try {
       // Get the session token from Clerk
-      const token = await getToken({ template: "convex" });
+      const token = await getToken();
       console.log(token);
       // Return the headers to the context so httpLink can read them
       return {
@@ -84,64 +78,31 @@ const AppWithWrapper = ({
   });
 
   return (
+    <ApolloProvider client={client}>
+      <TodoComponment />
+    </ApolloProvider>
+  );
+}
+
+const AppWithWrapper = ({
+  data,
+  children,
+}: {
+  data: any;
+  children: React.ReactNode;
+}) => {
+
+  return (
     <Wrapper
       data={data}
       publishableKey={import.meta.env.VITE_REACT_APP_CLERK_PUBLISHABLE_KEY}
     >
-      <ApolloProvider client={client}>{children}</ApolloProvider>
+      <TodoNote />
     </Wrapper>
   );
 };
 
 export const AppWithOutWrapper = () => {
-  const { getToken } = useAuth();
-  const httpLink = createHttpLink({
-    uri: "https://todo-note-server.onrender.com/graphql",
-    credentials: "include",
-    fetchOptions: {
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
-    },
-  });
-  
-  // Create an auth link that adds the token to every request
-  const authLink = setContext(async (_, { headers }) => {
-    try {
-      // Get the session token from Clerk
-      const token = await getToken({ template: "convex" });
-      console.log(token);
-      // Return the headers to the context so httpLink can read them
-      return {
-        headers: {
-          ...headers,
-          Authorization: `Bearer ${token}`
-        },
-      };
-    } catch (error) {
-      console.error("Error getting auth token:", error);
-      return {
-        headers: {
-          ...headers,
-          Authorization: ""
-        },
-      };
-    }
-  });
-  
-  client = new ApolloClient({
-    cache: cache,
-    link: authLink.concat(httpLink),
-    defaultOptions: {
-      watchQuery: {
-        fetchPolicy: 'network-only',
-        errorPolicy: 'ignore',
-      },
-    },
-    connectToDevTools: true,
-  });
   return (
     <ApolloProvider client={client}>
       <TodoComponment />
