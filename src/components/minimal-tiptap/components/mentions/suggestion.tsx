@@ -3,13 +3,13 @@ import tippy from 'tippy.js'
 
 import MentionList from './mention-list'
 
-import {client} from "../../../../App"
+import {ExposedClient} from "../../../../App"
 import { GET_USERS_BY_ORG } from '@/graphql/user/queries'
 
 export default {
 
   items: async ({ query }) => {
-    const { data } = await client.query({ query: GET_USERS_BY_ORG });
+    const { data } = await ExposedClient.query({ query: GET_USERS_BY_ORG });
     return data.getUsersByOrg
       .filter(item => item.firstName.toLowerCase().startsWith(query.toLowerCase()) || item.lastName.toLowerCase().startsWith(query.toLowerCase()))
       .slice(0, 5)

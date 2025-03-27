@@ -5,6 +5,7 @@ import {
   InMemoryCache,
   ApolloProvider,
   createHttpLink,
+  NormalizedCacheObject,
 } from "@apollo/client";
 import TodoComponment from "./pages/todo";
 import { setContext } from "@apollo/client/link/context";
@@ -13,6 +14,8 @@ import { useAuth } from "@clerk/clerk-react";
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
+
+let client: ApolloClient<NormalizedCacheObject>;
 
 let data: {
   navMain: {
@@ -68,7 +71,7 @@ const AppWithWrapper = ({
     }
   });
   
-  const client = new ApolloClient({
+  client = new ApolloClient({
     cache: cache,
     link: authLink.concat(httpLink),
     defaultOptions: {
@@ -128,7 +131,7 @@ export const AppWithOutWrapper = () => {
     }
   });
   
-  const client = new ApolloClient({
+  client = new ApolloClient({
     cache: cache,
     link: authLink.concat(httpLink),
     defaultOptions: {
@@ -186,5 +189,6 @@ const App = ({
 };
 
 export const exposedData = data;
+export const ExposedClient = client;
 
 export default App;
