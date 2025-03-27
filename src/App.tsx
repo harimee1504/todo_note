@@ -9,21 +9,38 @@ import {
 } from "@apollo/client";
 import TodoComponment from "./pages/todo";
 import { setContext } from "@apollo/client/link/context";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
 
-let client: ApolloClient<NormalizedCacheObject>;
+// Initialize with default values
+let client: ApolloClient<NormalizedCacheObject> = new ApolloClient({
+  cache,
+  link: createHttpLink({
+    uri: "https://todo-note-server.onrender.com/graphql",
+  }),
+});
 
-let data: {
-  navMain: {
-    title: string;
-    url: string;
-    icon: undefined;
-    isActive: boolean;
-    items: { title: string; url: () => void }[];
-  }[];
+let data = {
+  navMain: [
+    {
+      title: "TaskNote",
+      url: "#",
+      icon: undefined,
+      isActive: true,
+      items: [
+        {
+          title: "Todo",
+          url: () => {},
+        },
+        {
+          title: "Note",
+          url: () => {},
+        },
+      ],
+    },
+  ],
 };
 
 const TodoNote = () => {
@@ -43,7 +60,6 @@ const TodoNote = () => {
   const authLink = setContext(async (_, { headers }) => {
     try {
       const token = await getToken();
-      console.log(token);
       return {
         headers: {
           ...headers,
@@ -89,7 +105,12 @@ const AppWithWrapper = ({
 }) => {
   return (
     <Wrapper data={data}>
-      <TodoNote />
+      <SignedIn>
+        <TodoNote />
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
     </Wrapper>
   );
 };
@@ -97,7 +118,12 @@ const AppWithWrapper = ({
 export const AppWithOutWrapper = () => {
   return (
     <ApolloProvider client={client}>
-      <TodoComponment />
+      <SignedIn>
+        <TodoComponment />
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
     </ApolloProvider>
   );
 };
