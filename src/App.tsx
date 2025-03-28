@@ -10,6 +10,7 @@ import {
 import TodoComponment from "./pages/todo";
 import { setContext } from "@apollo/client/link/context";
 import { useAuth, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
+import NotesComponent from "./pages/notes/page";
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache();
@@ -98,15 +99,15 @@ const TodoNote = () => {
 
 const AppWithWrapper = ({
   data,
-  children,
+  component,
 }: {
   data: any;
-  children: React.ReactNode;
+  component: string;
 }) => {
   return (
     <Wrapper data={data}>
       <SignedIn>
-        <TodoNote />
+        {component === "todo" ? <TodoNote /> : <NotesComponent />}
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />
@@ -129,10 +130,10 @@ export const AppWithOutWrapper = () => {
 };
 
 const App = ({
-  children,
   option,
+  component,
 }: {
-  children: React.ReactNode;
+  component: string;
   option?: string;
 }) => {
   const navigate = useNavigate();
@@ -159,7 +160,7 @@ const App = ({
   };
 
   return option === "withWrapper" ? (
-    <AppWithWrapper data={data}>{children}</AppWithWrapper>
+    <AppWithWrapper data={data} component={component}/>
   ) : option === "withoutWrapper" ? (
     <AppWithOutWrapper />
   ) : (

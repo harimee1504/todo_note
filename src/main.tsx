@@ -8,8 +8,6 @@ import {
   Navigate, // Import Navigate for redirection
 } from "react-router-dom";
 import App from "./App.tsx";
-import TodoComponment from "./pages/todo/index.tsx";
-import NotesComponent from "./pages/notes/page.tsx";
 
 const router = createBrowserRouter([
   {
@@ -19,17 +17,13 @@ const router = createBrowserRouter([
   {
     path: "/todo",
     element: (
-      <App option="withWrapper">
-        <TodoComponment />
-      </App>
+      <App option="withWrapper" component="todo"></App>
     ),
   },
   {
     path: "/note",
     element: (
-      <App option="withWrapper">
-        <NotesComponent />
-      </App>
+      <App option="withWrapper" component="note"></App>
     ),
   },
 ]);
