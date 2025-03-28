@@ -91,7 +91,3 @@ body {
 .mention::after {
   content: "\200B";
 }
-
-.hidden {
-  display: inherit !important;
-}
