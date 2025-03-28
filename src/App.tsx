@@ -13,7 +13,34 @@ import { useAuth, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-rea
 import NotesComponent from "./pages/notes/page";
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
-const cache = new InMemoryCache();
+const cache = new InMemoryCache({
+  typePolicies: {
+    Query: {
+      fields: {
+        getTodo: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        },
+        getNotes: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        },
+        getTags: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        },
+        getUsersByOrg: {
+          merge(existing = [], incoming) {
+            return incoming;
+          },
+        },
+      },
+    },
+  },
+});
 
 // Initialize with default values
 let client: ApolloClient<NormalizedCacheObject> = new ApolloClient({
@@ -83,8 +110,9 @@ const TodoNote = () => {
     link: authLink.concat(httpLink),
     defaultOptions: {
       watchQuery: {
-        fetchPolicy: 'network-only',
-        errorPolicy: 'ignore',
+        fetchPolicy: 'cache-first',
+        nextFetchPolicy: 'cache-and-network',
+        errorPolicy: 'all',
       },
     },
     connectToDevTools: true,
