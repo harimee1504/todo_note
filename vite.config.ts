@@ -3,9 +3,22 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { federation } from '@module-federation/vite'
 
+// Custom plugin to inject remote stylesheet
+const injectRemoteStylesheet = () => ({
+  name: 'inject-remote-stylesheet',
+  transformIndexHtml(html: string) {
+    return html.replace(
+      '</head>',
+      `<link rel="stylesheet" href="https://auth-layout.vercel.app/_next/static/chunks/pages/_app.css" media="all" importance="high" />\n</head>`
+    )
+  }
+})
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(),
+  plugins: [
+    react(),
+    injectRemoteStylesheet(),
     federation({
       name: 'todo',
       filename: 'assets/remoteEntry.js',
