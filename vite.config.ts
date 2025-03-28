@@ -51,6 +51,18 @@ export default defineConfig({
         target: 'https://auth-layout.vercel.app',
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/_next/, ''),
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.log('proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            // Handle image requests specifically
+            if (req.url?.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
+              proxyReq.setHeader('Accept', 'image/*');
+            }
+          });
+        }
       }
     }
   }

@@ -1,6 +1,13 @@
 {
     "rewrites": [
-      { "source": "/(.*)", "destination": "/" }
+      { 
+        "source": "/_next/image",
+        "destination": "https://auth-layout.vercel.app/_next/image"
+      },
+      { 
+        "source": "/(.*)", 
+        "destination": "/" 
+      }
     ],
     "headers": [
       {
@@ -21,6 +28,15 @@
           {
             "key": "Access-Control-Allow-Headers",
             "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+          }
+        ]
+      },
+      {
+        "source": "/_next/(.*)\\.(jpg|jpeg|png|gif|webp|svg)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
           }
         ]
       }
