@@ -8,9 +8,9 @@ import {
   NormalizedCacheObject,
 } from "@apollo/client";
 import TodoComponment from "./pages/todo";
+import NotesComponent from "./pages/notes";
 import { setContext } from "@apollo/client/link/context";
 import { useAuth, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
-import NotesComponent from "./pages/notes/page";
 
 const Wrapper = React.lazy(() => import("auth/wrapper"!));
 const cache = new InMemoryCache({
@@ -71,7 +71,7 @@ let data = {
   ],
 };
 
-const TodoNote = () => {
+const TodoNote = ({ component }: { component: string }) => {
   const { getToken } = useAuth();
   const httpLink = createHttpLink({
     uri: "https://todo-note-server.onrender.com/graphql",
@@ -120,7 +120,7 @@ const TodoNote = () => {
 
   return (
     <ApolloProvider client={client}>
-      <TodoComponment />
+      {component === "todo" ? <TodoComponment /> : <NotesComponent />}
     </ApolloProvider>
   );
 }
@@ -135,7 +135,7 @@ const AppWithWrapper = ({
   return (
     <Wrapper data={data}>
       <SignedIn>
-        {component === "todo" ? <TodoNote /> : <NotesComponent />}
+        <TodoNote component={component} />
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn />
