@@ -1,5 +1,5 @@
 import React from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   ApolloClient,
   InMemoryCache,
@@ -135,7 +135,7 @@ const App = ({
   children: React.ReactNode;
   option?: string;
 }) => {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   data = {
     navMain: [
@@ -147,11 +147,11 @@ const App = ({
         items: [
           {
             title: "Todo",
-            url: () => {}, //navigate("/todo"),
+            url: () => navigate("/todo")
           },
           {
             title: "Note",
-            url: () => {}, //navigate("/note"),
+            url: () => navigate("/note")
           },
         ],
       },
