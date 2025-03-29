@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,6 +6,7 @@ import { format, addHours } from 'date-fns';
 import { Content } from '@tiptap/react';
 import { useQuery } from '@apollo/client';
 import { GET_USERS_BY_ORG } from '@/graphql/user/queries';
+import { Note } from '@/graphql/notes/types';
 
 import {
   Form,
@@ -50,12 +51,16 @@ interface NoteFormProps {
   selectedDate: Date;
   defaultStartTime?: Date;
   defaultEndTime?: Date;
+  mode?: 'add' | 'edit';
+  initialNote?: Note;
 }
 
-export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, defaultEndTime }: NoteFormProps) {
-  const [description, setDescription] = useState<Content>('');
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, defaultEndTime, mode = 'add', initialNote }: NoteFormProps) {
+  // Parse the initial note content if it exists
+  const initialContent = initialNote?.note ? JSON.parse(initialNote.note) : '';
+  const [description, setDescription] = useState<Content>(initialContent);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>(initialNote?.attendees.map(user => user.id) || []);
+  const [selectedTags, setSelectedTags] = useState<string[]>(initialNote?.tags?.map(tag => tag.id) || []);
   const [submitLoading, setSubmitLoading] = useState(false);
   const { data: user_data, loading: user_loading } = useQuery(GET_USERS_BY_ORG);
 
@@ -66,14 +71,31 @@ export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, de
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      title: '',
-      note: '',
+      title: initialNote?.title || '',
+      note: initialNote?.note || '',
       startTime: defaultStartTime || istSelectedDate,
       endTime: defaultEndTime || istEndDate,
-      attendees: [],
-      tags: [],
+      attendees: initialNote?.attendees.map(user => user.id) || [],
+      tags: initialNote?.tags?.map(tag => tag.id) || [],
     },
   });
+
+  // Update form when initialNote changes
+  useEffect(() => {
+    if (initialNote) {
+      form.reset({
+        title: initialNote.title,
+        note: initialNote.note,
+        startTime: new Date(initialNote.startTime),
+        endTime: new Date(initialNote.endTime),
+        attendees: initialNote.attendees.map(user => user.id),
+        tags: initialNote.tags?.map(tag => tag.id) || [],
+      });
+      setDescription(JSON.parse(initialNote.note));
+      setSelectedUsers(initialNote.attendees.map(user => user.id));
+      setSelectedTags(initialNote.tags?.map(tag => tag.id) || []);
+    }
+  }, [initialNote, form]);
 
   const handleSubmit = async (formData: z.infer<typeof FormSchema>) => {
     setSubmitLoading(true);
@@ -144,6 +166,34 @@ export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, de
 
         <FormField
           control={form.control}
+          name="note"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Note</FormLabel>
+              <FormControl>
+                <MinimalTiptapEditor
+                  value={description}
+                  onChange={(value) => {
+                    setDescription(value);
+                    field.onChange(JSON.stringify(value));
+                  }}
+                  className="min-h-[200px]"
+                  editorContentClassName="p-5"
+                  output="json"
+                  toolBar={true}
+                  toolbarType="basic"
+                  placeholder="Type your note content here..."
+                  editable={true}
+                  editorClassName="focus:outline-none"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="attendees"
           render={({ field }) => (
             <FormItem>
@@ -152,11 +202,8 @@ export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, de
                 <UsersMultiSelect
                   data={user_data}
                   loading={user_loading}
-                  selected={field.value}
-                  setSelectedUsers={(users) => {
-                    setSelectedUsers(users);
-                    field.onChange(users);
-                  }}
+                  selected={selectedUsers}
+                  setSelectedUsers={setSelectedUsers}
                 />
               </FormControl>
               <FormMessage />
@@ -172,39 +219,8 @@ export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, de
               <FormLabel>Tags</FormLabel>
               <FormControl>
                 <TagsMultiSelect
-                  selected={field.value}
-                  setSelectedTags={(tags) => {
-                    setSelectedTags(tags);
-                    field.onChange(tags);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="note"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Note</FormLabel>
-              <FormControl>
-                <MinimalTiptapEditor
-                  value={field.value || description}
-                  onChange={(value) => {
-                    setDescription(value);
-                    field.onChange(JSON.stringify(value));
-                  }}
-                  className="w-full"
-                  editorContentClassName="p-5"
-                  output="json"
-                  toolBar={true}
-                  toolbarType="basic"
-                  placeholder="Type your note content here..."
-                  editable={true}
-                  editorClassName="focus:outline-none"
+                  selected={selectedTags}
+                  setSelectedTags={setSelectedTags}
                 />
               </FormControl>
               <FormMessage />
@@ -222,7 +238,7 @@ export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, de
           </Button>
           <Button type="submit" disabled={submitLoading}>
             {submitLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Note
+            {mode === 'edit' ? 'Save Changes' : 'Create Note'}
           </Button>
         </div>
       </form>

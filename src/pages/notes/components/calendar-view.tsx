@@ -10,6 +10,8 @@ import { Plus, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useMutation } from '@apollo/client';
+import { DELETE_NOTE, UPDATE_NOTE } from '@/graphql/notes/mutations';
 
 const IST_TIMEZONE = "Asia/Kolkata";
 const HOUR_HEIGHT = 100; // Height for each hour slot
@@ -27,6 +29,8 @@ interface CalendarViewProps {
 export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refetchNotes, onTimeSlotSelect }: CalendarViewProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [weekDays, setWeekDays] = useState<Date[]>([]);
+  const [deleteNote] = useMutation(DELETE_NOTE);
+  const [updateNote] = useMutation(UPDATE_NOTE);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -84,6 +88,42 @@ export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refe
     const dateIST = new Date(day.toLocaleString("en-US", { timeZone: IST_TIMEZONE }));
     
     onTimeSlotSelect(dateIST, startTimeIST, endTimeIST);
+  };
+
+  const handleNoteDelete = async (noteId: string) => {
+    try {
+      await deleteNote({
+        variables: {
+          input: {
+            id: noteId
+          }
+        },
+      });
+      refetchNotes();
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
+  };
+
+  const handleNoteEdit = async (updatedNote: Note) => {
+    try {
+      await updateNote({
+        variables: {
+          input: {
+            id: updatedNote.id,
+            title: updatedNote.title,
+            note: updatedNote.note,
+            startTime: updatedNote.startTime,
+            endTime: updatedNote.endTime,
+            attendees: updatedNote.attendees.map(user => user.id),
+            tags: updatedNote.tags?.map(tag => tag.id),
+          },
+        },
+      });
+      refetchNotes();
+    } catch (error) {
+      console.error('Error updating note:', error);
+    }
   };
 
   const renderNotesForDay = (day: Date) => {
@@ -156,7 +196,12 @@ export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refe
             left,
           }}
         >
-          <NoteCard note={note} />
+          <NoteCard 
+            note={note} 
+            onDelete={handleNoteDelete}
+            onEdit={handleNoteEdit}
+            refetchNotes={refetchNotes}
+          />
         </div>
       );
     };

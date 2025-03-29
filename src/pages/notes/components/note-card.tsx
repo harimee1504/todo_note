@@ -14,15 +14,33 @@ import { Badge } from '@/components/ui/badge';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { MinimalTiptapEditor } from '@/components/minimal-tiptap';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Pencil, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { AddNote } from './add-note';
+import { Button } from '@/components/ui/button';
 
 const IST_TIMEZONE = "Asia/Kolkata";
 
 interface NoteCardProps {
   note: Note;
+  onDelete?: (noteId: string) => void;
+  onEdit?: (note: Note) => void;
+  refetchNotes?: () => void;
 }
 
-export function NoteCard({ note }: NoteCardProps) {
+export function NoteCard({ note, onDelete, onEdit, refetchNotes }: NoteCardProps) {
   const [showDialog, setShowDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditSheet, setShowEditSheet] = useState(false);
 
   const getNotePosition = () => {
     const startTime = new Date(note.startTime);
@@ -81,9 +99,33 @@ export function NoteCard({ note }: NoteCardProps) {
       </div>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="max-w-3xl bg-white">
+        <DialogContent className="bg-white">
           <DialogHeader>
-            <DialogTitle>{note.title}</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>{note.title}</DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setShowDialog(false);
+                    setShowEditSheet(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setShowDialog(false);
+                    setShowDeleteDialog(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
             <div className="space-y-4">
@@ -148,26 +190,59 @@ export function NoteCard({ note }: NoteCardProps) {
               )}
 
               {/* Note Content */}
-              <div className="space-y-2">
-                <div className="text-sm font-medium">Note</div>
-                <div className="bg-background rounded-md p-4 border">
-                  <TooltipProvider>
-                    <MinimalTiptapEditor
-                      value={parsedNoteContent}
-                      editable={false}
-                      className="min-h-[200px]"
-                      toolBar={false}
-                      output="json"
-                      editorContentClassName="p-5"
-                      editorClassName="focus:outline-none"
-                    />
-                  </TooltipProvider>
-                </div>
+              <div className="mt-4">
+                <MinimalTiptapEditor
+                  value={parsedNoteContent}
+                  editable={false}
+                  className="prose max-w-none"
+                  toolBar={false}
+                  output="json"
+                  editorClassName="focus:outline-none"
+                />
               </div>
             </div>
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Note</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this note? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete?.(note.id);
+                setShowDeleteDialog(false);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Sheet */}
+      <AddNote
+        open={showEditSheet}
+        onOpenChange={setShowEditSheet}
+        selectedDate={new Date(note.startTime)}
+        defaultStartTime={new Date(note.startTime)}
+        defaultEndTime={new Date(note.endTime)}
+        initialNote={note}
+        mode="edit"
+        refetchNotes={() => refetchNotes?.()}
+        onSubmit={(data) => {
+          onEdit?.({ ...note, ...data });
+          setShowEditSheet(false);
+        }}
+      />
     </>
   );
 } 
