@@ -52,24 +52,16 @@ export const AddNote = React.forwardRef<HTMLButtonElement, AddNoteProps>(
     const handleSubmit = async (formData: any) => {
       try {
         if (mode === 'edit' && initialNote) {
-          await updateNote({
-            variables: {
-              input: {...formData,id: initialNote.id},
-            },
-          });
+          if (onSubmit) {
+            onSubmit({...formData, id: initialNote.id});
+          }
         } else {
-          await createNote({
-            variables: {
-              input: formData,
-            },
-          });
-        }
-        
-        if (onSubmit) {
-          onSubmit(formData);
-        } else {
-          refetchNotes();
-          handleOpenChange(false);
+          if (onSubmit) {
+            onSubmit(formData);
+          } else {
+            refetchNotes();
+            handleOpenChange(false);
+          }
         }
       } catch (error) {
         console.error('Error saving note:', error);

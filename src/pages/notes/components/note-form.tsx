@@ -103,7 +103,7 @@ export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, de
       await onSubmit({
         ...formData,
         note: JSON.stringify(description),
-        attendees: selectedUsers,
+        attendees: selectedUsers.length > 0 ? selectedUsers : formData.attendees,
         tags: selectedTags,
       });
     } finally {
@@ -203,7 +203,10 @@ export function NoteForm({ onSubmit, setOpen, selectedDate, defaultStartTime, de
                   data={user_data}
                   loading={user_loading}
                   selected={selectedUsers}
-                  setSelectedUsers={setSelectedUsers}
+                  setSelectedUsers={(users: string[]) => {
+                    setSelectedUsers(users);
+                    field.onChange(users);
+                  }}
                 />
               </FormControl>
               <FormMessage />

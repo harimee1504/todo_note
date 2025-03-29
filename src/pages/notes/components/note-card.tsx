@@ -7,6 +7,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -32,8 +34,8 @@ const IST_TIMEZONE = "Asia/Kolkata";
 
 interface NoteCardProps {
   note: Note;
-  onDelete?: (noteId: string) => void;
-  onEdit?: (note: Note) => void;
+  onDelete: (noteId: string) => void;
+  onEdit: (note: Note) => void;
   refetchNotes?: () => void;
 }
 
@@ -78,6 +80,16 @@ export function NoteCard({ note, onDelete, onEdit, refetchNotes }: NoteCardProps
   // Parse the note content
   const parsedNoteContent = typeof note.note === 'string' ? JSON.parse(note.note) : note.note;
 
+  const handleDelete = () => {
+    onDelete(note.id);
+    setShowDeleteDialog(false);
+  };
+
+  const handleEdit = () => {
+    onEdit(note);
+    setShowDialog(false);
+  };
+
   return (
     <>
       <div
@@ -107,10 +119,7 @@ export function NoteCard({ note, onDelete, onEdit, refetchNotes }: NoteCardProps
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => {
-                    setShowDialog(false);
-                    setShowEditSheet(true);
-                  }}
+                  onClick={handleEdit}
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -216,33 +225,10 @@ export function NoteCard({ note, onDelete, onEdit, refetchNotes }: NoteCardProps
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                onDelete?.(note.id);
-                setShowDeleteDialog(false);
-              }}
-            >
-              Delete
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Edit Sheet */}
-      <AddNote
-        open={showEditSheet}
-        onOpenChange={setShowEditSheet}
-        selectedDate={new Date(note.startTime)}
-        defaultStartTime={new Date(note.startTime)}
-        defaultEndTime={new Date(note.endTime)}
-        initialNote={note}
-        mode="edit"
-        refetchNotes={() => refetchNotes?.()}
-        onSubmit={(data) => {
-          onEdit?.({ ...note, ...data });
-          setShowEditSheet(false);
-        }}
-      />
     </>
   );
 } 

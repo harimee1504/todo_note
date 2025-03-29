@@ -8,7 +8,7 @@ import { CalendarView } from "./components/calendar-view";
 import { AddNote } from "./components/add-note";
 import { format } from "date-fns";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useQuery, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE } from '@/graphql/notes/mutations';
 import { Note } from '@/graphql/notes/types';
 
@@ -24,8 +24,7 @@ const NotesComponent = () => {
     startTime: Date;
     endTime: Date;
   } | null>(null);
-
-  const { loading: queryLoading, error: queryError, data: queryData } = useQuery(GET_NOTES);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   const [createNote] = useMutation(CREATE_NOTE, {
     onCompleted: () => {
@@ -38,6 +37,8 @@ const NotesComponent = () => {
   const [updateNote] = useMutation(UPDATE_NOTE, {
     onCompleted: () => {
       refetch();
+      setShowAddNote(false);
+      setEditingNote(null);
     },
   });
 
@@ -66,10 +67,12 @@ const NotesComponent = () => {
   const handleAddNoteClose = () => {
     setShowAddNote(false);
     setSelectedTimeSlot(null);
+    setEditingNote(null);
   };
 
   const handleAddNoteClick = () => {
     setSelectedTimeSlot(null);
+    setEditingNote(null);
     setShowAddNote(true);
   };
 
@@ -79,7 +82,7 @@ const NotesComponent = () => {
         variables: {
           input: {
             title: noteData.title,
-            content: noteData.content,
+            note: noteData.note,
             startTime: noteData.startTime,
             endTime: noteData.endTime,
             attendees: noteData.attendees,
@@ -92,14 +95,14 @@ const NotesComponent = () => {
     }
   };
 
-  const handleUpdateNote = async (noteId: string, noteData: any) => {
+  const handleUpdateNote = async (noteData: any) => {
     try {
       await updateNote({
         variables: {
-          id: noteId,
           input: {
+            id: noteData.id,
             title: noteData.title,
-            content: noteData.content,
+            note: noteData.note,
             startTime: noteData.startTime,
             endTime: noteData.endTime,
             attendees: noteData.attendees,
@@ -116,12 +119,19 @@ const NotesComponent = () => {
     try {
       await deleteNote({
         variables: {
-          id: noteId,
+          input: {
+            id: noteId
+          }
         },
       });
     } catch (error) {
       console.error('Error deleting note:', error);
     }
+  };
+
+  const handleNoteEdit = (note: Note) => {
+    setEditingNote(note);
+    setShowAddNote(true);
   };
 
   return (
@@ -175,6 +185,8 @@ const NotesComponent = () => {
                 onDateSelect={setSelectedDate}
                 refetchNotes={refetch}
                 onTimeSlotSelect={handleTimeSlotSelect}
+                onNoteEdit={handleNoteEdit}
+                onNoteDelete={handleDeleteNote}
               />
             )}
           </motion.div>
@@ -189,7 +201,9 @@ const NotesComponent = () => {
           onClose={handleAddNoteClose}
           open={showAddNote}
           onOpenChange={setShowAddNote}
-          onSubmit={handleCreateNote}
+          onSubmit={editingNote ? handleUpdateNote : handleCreateNote}
+          mode={editingNote ? 'edit' : 'add'}
+          initialNote={editingNote}
         />
       </div>
     </TooltipProvider>

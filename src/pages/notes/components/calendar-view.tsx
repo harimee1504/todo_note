@@ -24,9 +24,11 @@ interface CalendarViewProps {
   onDateSelect: (date: Date) => void;
   refetchNotes: () => void;
   onTimeSlotSelect: (date: Date, startTime: Date, endTime: Date) => void;
+  onNoteEdit: (note: Note) => void;
+  onNoteDelete: (noteId: string) => void;
 }
 
-export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refetchNotes, onTimeSlotSelect }: CalendarViewProps) {
+export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refetchNotes, onTimeSlotSelect, onNoteEdit, onNoteDelete }: CalendarViewProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [weekDays, setWeekDays] = useState<Date[]>([]);
   const [deleteNote] = useMutation(DELETE_NOTE);
@@ -99,7 +101,6 @@ export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refe
           }
         },
       });
-      refetchNotes();
     } catch (error) {
       console.error('Error deleting note:', error);
     }
@@ -120,7 +121,6 @@ export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refe
           },
         },
       });
-      refetchNotes();
     } catch (error) {
       console.error('Error updating note:', error);
     }
@@ -198,9 +198,8 @@ export function CalendarView({ notes, viewMode, selectedDate, onDateSelect, refe
         >
           <NoteCard 
             note={note} 
-            onDelete={handleNoteDelete}
-            onEdit={handleNoteEdit}
-            refetchNotes={refetchNotes}
+            onDelete={onNoteDelete}
+            onEdit={onNoteEdit}
           />
         </div>
       );
