@@ -376,43 +376,6 @@ export function TodoCard({
                         </div>
                       </div>
                     )}
-                    <div className="space-y-2">
-                      <Dialog
-                        open={commentsOpen}
-                        onOpenChange={setCommentsOpen}
-                      >
-                        <DialogTrigger>
-                          <Button
-                            className="w-full"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCommentsOpen(true);
-                            }}
-                          >
-                            <MessageSquare className="h-4 w-4 mr-2" />
-                            View Discussion
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent onClick={(e) => e.stopPropagation()}>
-                          <div className="h-[80vh] w-[80vh] p-4 flex">
-                            <CommentSection
-                              theme="light"
-                              currentUser={{
-                                id: "1",
-                                fullName: "Me",
-                                avatarUrl: "https://github.com/shadcn.png",
-                              }}
-                              value={value}
-                              onChange={(val) => {
-                                setValue(val);
-                              }}
-                              className={""}
-                              allowUpVote={true}
-                            />
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

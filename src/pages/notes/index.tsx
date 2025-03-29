@@ -11,6 +11,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useMutation } from '@apollo/client';
 import { CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE } from '@/graphql/notes/mutations';
 import { Note } from '@/graphql/notes/types';
+import { NoteFilter } from './components/note-filter';
 
 const NotesComponent = () => {
   const [getNotes, { loading, error, data, refetch }] = useLazyQuery(GET_NOTES);
@@ -25,6 +26,7 @@ const NotesComponent = () => {
     endTime: Date;
   } | null>(null);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
 
   const [createNote] = useMutation(CREATE_NOTE, {
     onCompleted: () => {
@@ -56,6 +58,69 @@ const NotesComponent = () => {
       },
     });
   }, [query]);
+
+  useEffect(() => {
+    if (data?.getNotes) {
+      setFilteredNotes(data.getNotes);
+    }
+  }, [data]);
+
+  const handleFilterChange = (filters: {
+    search: string;
+    createdBy: string[];
+    attendees: string[];
+    tags: string[];
+    mentions: string[];
+  }) => {
+    if (!data?.getNotes) return;
+
+    let filtered = [...data.getNotes];
+
+    // Search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(note => 
+        note.title.toLowerCase().includes(searchLower) ||
+        note.note.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Created by filter
+    if (filters.createdBy.length > 0) {
+      filtered = filtered.filter(note =>
+        filters.createdBy.includes(note.createdBy.id)
+      );
+    }
+
+    // Attendees filter
+    if (filters.attendees.length > 0) {
+      filtered = filtered.filter(note =>
+        note.attendees.some(attendee =>
+          filters.attendees.includes(attendee.id)
+        )
+      );
+    }
+
+    // Tags filter
+    if (filters.tags.length > 0) {
+      filtered = filtered.filter(note =>
+        note.tags?.some(tag =>
+          filters.tags.includes(tag.id)
+        )
+      );
+    }
+
+    // Mentions filter
+    if (filters.mentions.length > 0) {
+      filtered = filtered.filter(note =>
+        note.mentions?.some(mention =>
+          filters.mentions.includes(mention.id)
+        )
+      );
+    }
+
+    setFilteredNotes(filtered);
+  };
 
   if (error) return `Error! ${error.message}`;
 
@@ -168,6 +233,10 @@ const NotesComponent = () => {
             </Button>
           </div>
         </div>
+
+        {/* Filter Section */}
+        <NoteFilter onFilterChange={handleFilterChange} />
+
         <AnimatePresence>
           <motion.div
             initial={{ opacity: 0 }}
@@ -179,7 +248,7 @@ const NotesComponent = () => {
               <div>Loading...</div>
             ) : (
               <CalendarView
-                notes={data?.getNotes || []}
+                notes={filteredNotes}
                 viewMode={viewMode}
                 selectedDate={selectedDate}
                 onDateSelect={setSelectedDate}
