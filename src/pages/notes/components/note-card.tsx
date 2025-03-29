@@ -28,25 +28,22 @@ export function NoteCard({ note }: NoteCardProps) {
     const startTime = new Date(note.startTime);
     const endTime = new Date(note.endTime);
     
-    // Convert to IST
-    const startTimeIST = new Date(startTime.toLocaleString("en-US", { timeZone: IST_TIMEZONE }));
-    const endTimeIST = new Date(endTime.toLocaleString("en-US", { timeZone: IST_TIMEZONE }));
+    // Calculate start position
+    const startHour = startTime.getHours();
+    const startMinute = startTime.getMinutes();
+    const startPercentage = (startHour + startMinute / 60) * 100;
     
-    // Calculate duration in minutes
-    const duration = (endTimeIST.getTime() - startTimeIST.getTime()) / (1000 * 60);
-    
-    // Calculate position as percentage of the day (1440 minutes)
-    const startMinutes = startTimeIST.getHours() * 60 + startTimeIST.getMinutes();
-    const top = (startMinutes / 1440) * 100;
-    const height = (duration / 1440) * 100;
-    
-    // Ensure minimum height for visibility
-    const minHeight = 30; // pixels
-    const calculatedHeight = Math.max(height, (minHeight / 1440) * 100);
+    // Calculate end position
+    const endHour = endTime.getHours();
+    const endMinute = endTime.getMinutes();
+    const endPercentage = (endHour + endMinute / 60) * 100;
+    console.log(note, startPercentage, endPercentage);
+    // Calculate height as the difference between end and start positions
+    const height = endPercentage - startPercentage;
     
     return {
-      top: `${top}%`,
-      height: `${calculatedHeight}%`,
+      top: `${0}px`,
+      height: `${height}px`,
     };
   };
 

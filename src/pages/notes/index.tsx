@@ -8,6 +8,9 @@ import { CalendarView } from "./components/calendar-view";
 import { AddNote } from "./components/add-note";
 import { format } from "date-fns";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useQuery, useMutation } from '@apollo/client';
+import { CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE } from '@/graphql/notes/mutations';
+import { Note } from '@/graphql/notes/types';
 
 const NotesComponent = () => {
   const [getNotes, { loading, error, data, refetch }] = useLazyQuery(GET_NOTES);
@@ -21,6 +24,28 @@ const NotesComponent = () => {
     startTime: Date;
     endTime: Date;
   } | null>(null);
+
+  const { loading: queryLoading, error: queryError, data: queryData } = useQuery(GET_NOTES);
+
+  const [createNote] = useMutation(CREATE_NOTE, {
+    onCompleted: () => {
+      refetch();
+      setShowAddNote(false);
+      setSelectedTimeSlot(null);
+    },
+  });
+
+  const [updateNote] = useMutation(UPDATE_NOTE, {
+    onCompleted: () => {
+      refetch();
+    },
+  });
+
+  const [deleteNote] = useMutation(DELETE_NOTE, {
+    onCompleted: () => {
+      refetch();
+    },
+  });
 
   useEffect(() => {
     if(!query) return;
@@ -48,6 +73,57 @@ const NotesComponent = () => {
     setShowAddNote(true);
   };
 
+  const handleCreateNote = async (noteData: any) => {
+    try {
+      await createNote({
+        variables: {
+          input: {
+            title: noteData.title,
+            content: noteData.content,
+            startTime: noteData.startTime,
+            endTime: noteData.endTime,
+            attendees: noteData.attendees,
+            tags: noteData.tags,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error creating note:', error);
+    }
+  };
+
+  const handleUpdateNote = async (noteId: string, noteData: any) => {
+    try {
+      await updateNote({
+        variables: {
+          id: noteId,
+          input: {
+            title: noteData.title,
+            content: noteData.content,
+            startTime: noteData.startTime,
+            endTime: noteData.endTime,
+            attendees: noteData.attendees,
+            tags: noteData.tags,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error updating note:', error);
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      await deleteNote({
+        variables: {
+          id: noteId,
+        },
+      });
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="flex flex-col gap-4 p-4">
@@ -69,10 +145,18 @@ const NotesComponent = () => {
               </Button>
             </div>
           </div>
-          <Button onClick={handleAddNoteClick}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Note
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedDate(new Date())}
+            >
+              Today
+            </Button>
+            <Button onClick={handleAddNoteClick}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Note
+            </Button>
+          </div>
         </div>
         <AnimatePresence>
           <motion.div
@@ -105,6 +189,7 @@ const NotesComponent = () => {
           onClose={handleAddNoteClose}
           open={showAddNote}
           onOpenChange={setShowAddNote}
+          onSubmit={handleCreateNote}
         />
       </div>
     </TooltipProvider>
