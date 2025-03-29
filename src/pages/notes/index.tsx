@@ -12,6 +12,7 @@ import { useMutation } from '@apollo/client';
 import { CREATE_NOTE, UPDATE_NOTE, DELETE_NOTE } from '@/graphql/notes/mutations';
 import { Note } from '@/graphql/notes/types';
 import { NoteFilter } from './components/note-filter';
+import { Content } from "@tiptap/react";
 
 const NotesComponent = () => {
   const [getNotes, { loading, error, data, refetch }] = useLazyQuery(GET_NOTES);
@@ -141,8 +142,32 @@ const NotesComponent = () => {
     setShowAddNote(true);
   };
 
+  function findAllValuesByKey(obj: Content) {
+    const results = new Set();
+
+    function search(obj: any) {
+      if (typeof obj !== "object" || obj === null) {
+        return;
+      }
+
+      for (const [key, value] of Object.entries(obj)) {
+        if (key === "type" && value === "mention") {
+          results.add(obj.attrs.user_id);
+        }
+
+        if (typeof value === "object") {
+          search(value);
+        }
+      }
+    }
+
+    search(obj);
+    return results;
+  }
+
   const handleCreateNote = async (noteData: any) => {
     try {
+      let mentions = [...findAllValuesByKey(JSON.parse(noteData.note))];
       await createNote({
         variables: {
           input: {
@@ -152,6 +177,7 @@ const NotesComponent = () => {
             endTime: noteData.endTime,
             attendees: noteData.attendees,
             tags: noteData.tags,
+            mentions: mentions,
           },
         },
       });
@@ -162,6 +188,7 @@ const NotesComponent = () => {
 
   const handleUpdateNote = async (noteData: any) => {
     try {
+      let mentions = [...findAllValuesByKey(JSON.parse(noteData.note))];
       await updateNote({
         variables: {
           input: {
@@ -172,6 +199,7 @@ const NotesComponent = () => {
             endTime: noteData.endTime,
             attendees: noteData.attendees,
             tags: noteData.tags,
+            mentions: mentions,
           },
         },
       });

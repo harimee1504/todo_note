@@ -57,7 +57,6 @@ export function NoteCard({ note, onDelete, onEdit, refetchNotes }: NoteCardProps
     const endHour = endTime.getHours();
     const endMinute = endTime.getMinutes();
     const endPercentage = (endHour + endMinute / 60) * 100;
-    console.log(note, startPercentage, endPercentage);
     // Calculate height as the difference between end and start positions
     const height = endPercentage - startPercentage;
     
